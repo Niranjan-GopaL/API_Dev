@@ -7,6 +7,10 @@ $ pip install -r lib.txt
 $ fastapi dev main.py
 ```
 
+Shows you all the pacakages installed 
+```sh
+pip freeze
+```
 > You need to _SOURCE_ it ! <--- what you forget
 
 ### Reading the Docs ! 
