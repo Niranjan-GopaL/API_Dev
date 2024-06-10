@@ -96,9 +96,11 @@ def get_posts(id : int, response : Response ):
     # FIFTH : now every time you create a post, send the correct HTTP status code ( 201 )
     # change the POST /posts  to pass in default status code when you create a resource
 
+    
+    # New lesson :- you can't do return { ..., "key" : type(id)  } since type returns something that can't be used as a VALUE 
     return {
         "THIS IS THE PATH PARAMETER => " : id, 
-        "THIS IS IT'S TYPE => " : type(id) 
+        "THIS IS IT'S TYPE => " : str(type(id))  , 
             }
 
 # this is how to have a DEFAULT STATUS CODE
