@@ -1,3 +1,16 @@
+### Git 
+- you can't type EXCLAMANTIONS !! in git commit message ; so what you gotta do is 
+```sh
+git commit -m "Nailed it!!!!"  # <-- does not work
+git commit -m "Nailed it!!!! " # <-- LEAVE SPACE between ! and "
+```
+
+- edit commit messages using `git commit --amend` THIS OEPNS AN TEXT EDITOR
+```sh
+git config --global core.editor "code" # <------- NOW IT OPENS THE COMMIT MESSAGE IN NEW VSC tab
+```
+
+ 
 ### Humble Beginings 
 
 ```sh
