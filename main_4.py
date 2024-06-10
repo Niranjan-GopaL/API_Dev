@@ -29,19 +29,16 @@ my_posts = {
 @app.delete("/posts/delete/{id}", status_code=status.HTTP_204_NO_CONTENT )
 def delete_post(id:int):
     print(my_posts)
-    post = my_posts[id]
 
     # trying to delete with a key that's not present gives => INTERNAL server error
-    my_posts.pop(id)
-    # del my_posts[id]
+    if my_posts.__contains__(id):
+        my_posts.pop(id)
+        # del my_posts[id]
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with the id requested {id} is not present ; Invalid id ; " )
 
-    
-    return {
-            "msg" : f"delted the post with the id={id}",
-            "deleted_post" : post ,
-            "All posts after " : my_posts,
-        }
-
+    # for 204, we don't expect ANY return from the API to the client
 
 @app.get("/posts")   # don't need to add the slash unneccasarily 
 def get_posts():
