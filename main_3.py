@@ -1,5 +1,5 @@
 import random
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel
 
 
@@ -18,8 +18,12 @@ app = FastAPI()
 my_posts = [
     {"id":1,"title" : "title_1", "content":"content_1"},
     {"id":2,"title" : "title_2", "content":"content_2"},
+    {"id":3,"title" : "title_3", "content":"content_3"},
+    {"id":4,"title" : "title_4", "content":"content_4"},
 ]
 
+
+# NOTE :-
 # @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ; but somehow the interactive docs was fine with this too ; 
 @app.get("/posts")   # don't need to add the slash unneccasarily 
 def get_posts():
@@ -30,15 +34,30 @@ def get_posts():
     return {"data ---> " : my_posts }
 
 
+
+
+
+
+
+def find_post_with_id(id):
+    for post in my_posts:
+        if post["id"] == id:
+            return post
+
+
+# FASTAPI does it's magic validation and checks if whatever is sent is integer or not
 @app.get("/posts/{id}") 
-def get_posts(id):
+# we get the id passed, along with the default response
+def get_posts(id : int, response : Response ):
+
     # fn to do this :- ZERO TASK
     # retriving the post  with that ID 
-    
+    post = find_post_with_id(id)
 
     # FIRST TASK :-
-    # you'll get None error without explicit conversion since function checks id === my_posts[i]["id"]
-    # NOTE: REMEMBER ID <---------- STRING ; MANUALLY **EXPLICITLY CONVERT IT**
+    print(post) # this will always be None ; we are passing a STRING ; we expect an INTEGER
+    post = find_post_with_id( int(id) )
+    
 
     # SECOND TASK
     # But we also need to make sure that passed parameter, id CAN BE CONVERTED TO INTEGER
@@ -47,12 +66,16 @@ def get_posts(id):
     #                                   ; Now on passing a string as a path parameter 
     #                                   ; Front ed gets a nice error requesting only string parameters
 
-    # FOURTH : How important is ordering
-    # THIS IS WRONG  <---- if user goes to /posts/latest ; server matches it with /posts/{id} 
+
+
+
+    # THIRD : How important is ordering
+    # THIS IS WRONG :-  <---- if user goes to /posts/latest ; server matches it with /posts/{id} 
     # @app.get(/posts/{id})
     # @app.get(/posts/latest)
 
-    # FIFTH : there is no way for front end to know if there was an out of bound error ;
+
+    # FOURTH : there is no way for front end to know if there was an out of bound error ;
     # the user can go to /posts/10000 even if there are only 10 posts ; we want front end to know this 
     # Ans : 404 error code ; the path DOES NOT EXIST ; 
     # More : we wanna send these [best practices]
@@ -62,17 +85,24 @@ def get_posts(id):
     # 1-------> use Response, Status lib
     # 2-------> use HTTPException [ REALLY CLEAN and CONCISE ]
 
+    if post is None :
+        response.status_code = status.HTTP_404_NOT_FOUND
+        return { "message" : f"post with the id requested {id} is not present ; Invalid id ; " }
 
-    # SIXTH : now every time you create a post, send the correct HTTP status code ( 201 )
-    # how to pass in default status code
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with the id requested {id} is not present ; Invalid id ; " )
+
+    # FIFTH : now every time you create a post, send the correct HTTP status code ( 201 )
+    # change the POST /posts  to pass in default status code when you create a resource
 
     return {
         "THIS IS THE PATH PARAMETER => " : id, 
         "THIS IS IT'S TYPE => " : type(id) 
             }
 
- 
-@app.post("/posts")
+# this is how to have a DEFAULT STATUS CODE
+@app.post("/posts" , status_code=status.HTTP_201_CREATED )
 def post_posts(post : Post):
     print(post)
     post_dict = post.model_dump()
