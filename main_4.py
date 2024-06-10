@@ -8,12 +8,13 @@ class Post(BaseModel):
      
 app = FastAPI()
 
-my_posts = [
-    {"id":1,"title" : "title_1", "content":"content_1"},
-    {"id":2,"title" : "title_2", "content":"content_2"},
-    {"id":3,"title" : "title_3", "content":"content_3"},
-    {"id":4,"title" : "title_4", "content":"content_4"},
-]
+# much better way to store posts with a unique id is a HASH MAP
+my_posts = { 
+            1 : {"title" : "title_1", "content":"content_1"},
+            2 : {"title" : "title_2", "content":"content_2"},
+            3 : {"title" : "title_3", "content":"content_3"},
+            4 : {"title" : "title_4", "content":"content_4"},
+        }
 
 
 # ------------------------------- CHAPTER - 4 : DELETE ------------------------------------------------------- #
@@ -27,9 +28,8 @@ def get_posts():
 
 
 def find_post_with_id(id):
-    for post in my_posts:
-        if post["id"] == id:
-            return post
+    if my_posts.__contains__(id) :
+        return my_posts[id] 
 
 
 # FASTAPI does it's magic validation and checks if whatever is sent is integer or not
@@ -37,9 +37,6 @@ def find_post_with_id(id):
 # we get the id passed, along with the default response
 def get_posts(id : int, response : Response ):
 
-    post = find_post_with_id(id)
-
-    print(post) 
     post = find_post_with_id( int(id) )
 
     if post is None:
@@ -60,8 +57,8 @@ def post_posts(post : Post):
     post_dict = post.model_dump()
     print(post_dict)
     
-    post_dict["id"] = random.randint(1, 1_000_000_000)
-    my_posts.append(post_dict)
+    id = random.randint(1, 1_000)
+    post_dict[id] = post_dict
 
     return {
             "data recieved by API in dictionary form " : post_dict,
