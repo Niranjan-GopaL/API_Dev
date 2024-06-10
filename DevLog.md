@@ -9,9 +9,27 @@ git commit -m "Nailed it!!!! " # <-- LEAVE SPACE between ! and "
 ```sh
 git config --global core.editor "code" # <------- NOW IT OPENS THE COMMIT MESSAGE IN NEW VSC tab
 ```
+- But be sure to have autosave OFF ; otherwise it'll always be `Aborting commit due to empty commit message.`
+This is also an option _CURRENTLY USING THIS_
+```sh
+git config --global core.editor "nvim" 
+```
 
  
 ### Humble Beginings 
+
+
+#### Postgres Beginings
+```sh
+$ sudo service postgresql start
+$ sudo -i -u postgres      # switch to postgres user
+$ createdb mydb
+$ exit
+```
+
+sudo nvim /etc/postgresql/14/main/pg_hba.conf
+
+
 
 ```sh
 $ python3 -m venv API
