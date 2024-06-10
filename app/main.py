@@ -8,7 +8,9 @@ class Post(BaseModel):
      
 app = FastAPI()
 
-# uvicorn app.
+# uvicorn app.main:app --reload ; 
+# <package_name>.<file_name>:<FAST_API instance> 
+# app.main:app --reload 
 
 my_posts = { 
             0 : {"title" : "title_0", "content":"content_0"},
@@ -46,7 +48,9 @@ def update_post(updated_post:Post, id: int):
                             detail=f"post with the id requested {id} is not present ; Invalid id ; " )
     return {"data updated ! These are all the posts " : my_posts }
 
-
+# NOTE :-
+# @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
+#                            but somehow the interactive docs was fine with this too ; 
 @app.get("/posts")   # don't need to add the slash unneccasarily 
 def get_posts():
     return {"data ---> " : my_posts }
