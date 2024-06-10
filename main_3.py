@@ -99,8 +99,9 @@ def get_posts(id : int, response : Response ):
     
     # New lesson :- you can't do return { ..., "key" : type(id)  } since type returns something that can't be used as a VALUE 
     return {
-        "THIS IS THE PATH PARAMETER => " : id, 
-        "THIS IS IT'S TYPE => " : str(type(id))  , 
+                "THIS IS THE PATH PARAMETER => " : id, 
+                "THIS IS IT'S TYPE => " : str(type(id))  ,
+                f"post with id={id}" : post 
             }
 
 # this is how to have a DEFAULT STATUS CODE
