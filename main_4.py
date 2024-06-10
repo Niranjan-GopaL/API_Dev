@@ -10,14 +10,16 @@ app = FastAPI()
 
 # much better way to store posts with a unique id is a HASH MAP
 my_posts = { 
+            0 : {"title" : "title_0", "content":"content_0"},
             1 : {"title" : "title_1", "content":"content_1"},
             2 : {"title" : "title_2", "content":"content_2"},
             3 : {"title" : "title_3", "content":"content_3"},
             4 : {"title" : "title_4", "content":"content_4"},
+            5 : {"title" : "title_5", "content":"content_5"},
         }
 
 
-# ------------------------------- CHAPTER - 4 : DELETE ------------------------------------------------------- #
+# ------------------------------- CHAPTER - 4 : THE CRUD FINALE :- DELETE ; UPDATE ------------------------------------------------------- #
 
 
 # for deletinf a key value pair in dictionary :-
@@ -26,7 +28,7 @@ my_posts = {
 
 
 
-@app.delete("/posts/delete/{id}", status_code=status.HTTP_204_NO_CONTENT )
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT )
 def delete_post(id:int):
     print(my_posts)
 
@@ -39,6 +41,21 @@ def delete_post(id:int):
                             detail=f"post with the id requested {id} is not present ; Invalid id ; " )
 
     # for 204, we don't expect ANY return from the API to the client
+
+# check this :-
+    # 1. get all posts
+    # 2. put a post
+
+# with put,  NOTE :- even if you wanna update only field, you'll need to pass in everything
+@app.put("/posts/{id}")
+def update_post(updated_post:Post, id: int):
+    if my_posts.__contains__(id):
+        my_posts[id] = updated_post.model_dump()
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"post with the id requested {id} is not present ; Invalid id ; " )
+    return {"data updated ! These are all the posts " : my_posts }
+
 
 @app.get("/posts")   # don't need to add the slash unneccasarily 
 def get_posts():
