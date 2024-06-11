@@ -1,6 +1,26 @@
-## Monday (10th June) : Goal - finish 3 hours today
+## Tuesday (11th June) : Goal - finish TO 5 hours today
+> No GraphQL unless I finish the below, getting sidetracked is easy ; Don't fall prey !
+- pgadmin 
+- Python + RawSQL
+- SQLAlchemy set-up
+- start Pydantic Models
 
-#### ALGORITHM :
+### Fire
+1. 1pm - 3:30pm 
+GOAL - [Finish Pgadmin; No practical; ONLY NOTES and screenshots]
+=> Finished ; was pretty quick this time ; Probably because I already knew SQL 
+=> also tried almost all the commands in a dummy table ; made really good notes
+2.  4 - 6pm 
+GOAL - [ Connect to Postgres using python ; Finish that connection set up ; Finish in lecture upto 4:30 hrs ] 
+BIGGEST PROBLEM : WSL 
+
+
+
+
+
+## Monday (10th June) : Goal - finish 3 hours today *DONE*
+
+#### ALGORITHM to test :
     1. Continuous Theory in a stretch with little practical ; Notes
     2. Then Continuous Practical
 
