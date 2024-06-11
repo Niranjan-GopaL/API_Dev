@@ -30,6 +30,9 @@ sudo nvim /etc/postgresql/14/main/pg_hba.conf
 
 `$ pip install psycopg2-binary` <--- if this does not work ; might need to go to normal environment and not wsl
 
+> THIS WAS REALLY HARD and I didn't want to spend fk tonne of time in here ;
+> connecting POSTGRES through wsl was not hard ; So migrated to the comfyness of Windows
+
 
 #### VENV set up with FASTAPI
 ```sh
