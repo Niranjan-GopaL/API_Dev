@@ -18,7 +18,6 @@ git config --global core.editor "nvim"
  
 ### Humble Beginings 
 
-
 #### Postgres Beginings
 ```sh
 $ sudo service postgresql start
@@ -29,8 +28,10 @@ $ exit
 
 sudo nvim /etc/postgresql/14/main/pg_hba.conf
 
+`$ pip install psycopg2-binary` <--- if this does not work ; might need to go to normal environment and not wsl
 
 
+#### VENV set up with FASTAPI
 ```sh
 $ python3 -m venv API
 $ source API/bin/activate
