@@ -15,8 +15,28 @@ This is also an option _CURRENTLY USING THIS_
 git config --global core.editor "nvim" 
 ```
 
- 
+
 ### Humble Beginings 
+
+# ORMs
+<!-- READ THIS :- https://fastapi.tiangolo.com/tutorial/sql-databases/ -->
+```py
+# Every time API needs to interact with the server ; WE CREATE A NEW SESSION ; EFFICIENCY !!!
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+``` 
+
+- When the *context* is _entered_, it creates a new `SessionLocal object` and assigns it to the variable `db`. 
+- When the *context* is _exited_, it calls the close method on the db object to close the session. 
+- The [yield} statement allows the `function` to be used as a `generator`, allowing the _caller to use the db object_ within a `with` statement. 
+
+
+
+
 
 #### Postgres Beginings
 ```sh

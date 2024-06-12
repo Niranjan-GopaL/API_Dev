@@ -6,9 +6,13 @@
 
 #### Fire
 1. 8:30am - 10:30am
-- 
+2. 11am   - 1pm
+3. 3:30pm - 6pm  [commits 11/40 ; a major error fixed ; took a lot of time; STARTED ORM ]
+4. 
 
-
+To-dos :-
+- create a table using sqlalchemy
+- tackle the created_At parameter problem 
 
 
 
