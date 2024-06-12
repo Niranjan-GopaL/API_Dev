@@ -42,6 +42,9 @@ class Post(BaseModel):
 # <package_name>.<file_name>:<FAST_API instance> 
 # app.main:app --reload 
 
+get_all_post_query = 'SELECT * FROM posts ; '
+get_id_post_query = lambda id: f'SELECT * FROM posts WHERE id = {id}'
+
 my_posts = { 
             0 : {"title" : "title_0", "content":"content_0"},
             1 : {"title" : "title_1", "content":"content_1"},
@@ -57,9 +60,8 @@ my_posts = {
 #                            but somehow the interactive docs was fine with this too ; 
 @app.get("/posts")   # don't need to add the slash unneccasarily 
 def get_posts():
-    cur.execute('SELECT * FROM posts ; ')
-    # use fetchall() to get all rows ; 
-    # fetchone() to get only one row WHEN you identify the row with UNIQUE ID
+    cur.execute(get_all_post_query)
+    # use fetchall() to get all rows ; fetchone() to get only one row WHEN you identify the row with UNIQUE ID
     posts = cur.fetchall() 
     print(posts)
     return {"data " : posts }
@@ -105,8 +107,11 @@ def find_post_with_id(id):
 # we get the id passed, along with the default response
 def get_posts(id : int, response : Response ):
 
-    post = find_post_with_id( int(id) )
-
+    # Findings a post with a given id in Postgre SQL
+    # even if the id is invalid the QUery will execute correctly !!
+    post = cur.execute( get_id_post_query(int(id)) )
+    post = cur.fetchone()
+    
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with the id requested {id} is not present ; Invalid id ; " )
