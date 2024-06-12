@@ -142,6 +142,17 @@ def create_post(new_post: Post):
                     "INSERT INTO posts (title, content, is_published) VALUES (%s,%s,%s) RETURNING * ; ", 
                     (post_dict['title'], post_dict['content'], post_dict['is_published']) 
                     )
+        
+        # Here lies my unsafe but REALLY FKING CLEAN code 😢💔 ;
+        # This absolutely works ; But we don't use it since it's prone to SQL injections ?
+        # cur.execute(
+        #     post_query(
+        #         post_dict['title'],
+        #         post_dict['content'],
+        #         post_dict['is_published']
+        #     )
+        # )
+        
         post_created = cur.fetchone()
         print(post_created,"\n\n\n")
 
