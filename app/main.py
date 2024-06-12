@@ -1,8 +1,12 @@
-import random
 from fastapi import FastAPI, HTTPException, Response, status
+from uvicorn import Config, Server
+
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
 from psycopg2 import connect 
+
+from signal import signal, SIGINT
+from sys import exit
 from time import sleep
 
 
@@ -19,6 +23,9 @@ while True:
             password="123", 
             cursor_factory=RealDictCursor
         )  
+        
+        conn.autocommit = False  # Disable auto commit for transaction handling
+
         cur = conn.cursor()
         cur.execute('SELECT * FROM posts ; ')
         records = cur.fetchall()
@@ -42,8 +49,9 @@ class Post(BaseModel):
 # <package_name>.<file_name>:<FAST_API instance> 
 # app.main:app --reload 
 
-get_all_post_query = 'SELECT * FROM posts ; '
-get_id_post_query = lambda id: f'SELECT * FROM posts WHERE id = {id}'
+get_all_post_query  = 'SELECT * FROM posts ; '
+get_id_post_query   = lambda id: f'SELECT * FROM posts WHERE id = {id}'
+post_query          = lambda title, content, published: f'INSERT INTO posts (title, content, published) VALUES ({title}, {content}, {published}) RETURNING * ; '
 
 my_posts = { 
             0 : {"title" : "title_0", "content":"content_0"},
@@ -97,10 +105,6 @@ def update_post(updated_post:Post, id: int):
 
 
 
-def find_post_with_id(id):
-    if my_posts.__contains__(id) :
-        return my_posts[id] 
-
 
 # FASTAPI does it's magic validation and checks if whatever is sent is integer or not
 @app.get("/posts/{id}") 
@@ -109,7 +113,7 @@ def get_posts(id : int, response : Response ):
 
     # Findings a post with a given id in Postgre SQL
     # even if the id is invalid the QUery will execute correctly !!
-    post = cur.execute( get_id_post_query(int(id)) )
+    cur.execute( get_id_post_query(int(id)) )
     post = cur.fetchone()
     
     if post is None:
@@ -123,17 +127,73 @@ def get_posts(id : int, response : Response ):
             }
 
 
-# this is how to have a DEFAULT STATUS CODE
-@app.post("/posts" , status_code=status.HTTP_201_CREATED )
-def post_posts(post : Post):
-    print(post)
-    post_dict = post.model_dump()
-    print(post_dict)
-    
-    id = random.randint(1, 1_000)
-    post_dict[id] = post_dict
 
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+def create_post(new_post: Post):
+    try:
+        print("Post recieved : ", new_post, "\n\n----------------------------------------------------------------------\n\n\n")
+        post_dict = new_post.model_dump()
+        print("Post in dict() : ", post_dict, "\n\n----------------------------------------------------------------------\n\n")
+
+        if 'is_published' not in post_dict:
+            post_dict['is_published'] = True
+
+        print(f"title: {post_dict['title']} content:{ post_dict['content']} is_published:{post_dict['is_published']}")
+
+        # this is the part where I got SOOO MANY internal server errors !
+        cur.execute(
+            "INSERT INTO posts (title, content, is_published) VALUES (%s,%s,%s) RETURNING * ; ", 
+            (post_dict['title'], post_dict['content'], post_dict['is_published']) 
+                    )
+        post_created = cur.fetchone()
+
+        print(post_created,"\n\n\n")
+
+        conn.commit()  # Commit the transaction on success
+
+        return {
+            "data_received_by_API": post_dict,
+            # THIS IS SERIALIZED by FASTAPI
+            "data in postgres sql": post_created
+        }
+    except Exception as e:
+        conn.rollback()  # Rollback the transaction on error
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+
+# this is how to have a DEFAULT STATUS CODE
+@app.post("/posts/" , status_code=status.HTTP_201_CREATED )
+def post_posts(post: Post):
+    print("Post recieved : ", post, "\n\n----------------------------------------------------------------------\n\n\n")
+    post_dict = post.model_dump()
+    print("Post in dict() : ", post_dict, "\n\n----------------------------------------------------------------------\n\n")
+    
+    if 'is_published' not in post_dict:
+        post_dict['is_published'] = True
+
+    print(f"title: {post_dict['title']} content:{ post_dict['content']} is_published:{post_dict['is_published']}")
+
+    # this is the part where I got SOOO MANY internal server errors !
+    cur.execute(
+        "INSERT INTO posts (title, content, published) VALUES (%s,%s,%s) RETURNING * ; ", 
+        (post_dict['title'], post_dict['content'], post_dict['is_published']) 
+                )
+    post_created = cur.fetchone()
+    conn.commit()  # Commit the transaction on success
+    print(post_created,"\n\n\n")
     return {
             "data recieved by API in dictionary form " : post_dict,
-            "data recieved ; now the list of posts are :- " : my_posts
+            "data added" : post_created
         }
+    
+def signal_handler(sig, frame):
+    print('Shutting down Uvicorn server...')
+    conn.close()
+    exit(0)
+
+if __name__ == "__main__":
+    config = Config(app, host="127.0.0.1", port=8000, log_level="info", reload=True)
+    server = Server(config)
+    signal(SIGINT, signal_handler)
+    server.run()
