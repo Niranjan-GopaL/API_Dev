@@ -1,5 +1,5 @@
 from fastapi import FastAPI, HTTPException, Response, status
-from uvicorn import Config, Server
+from uvicorn import run
 
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
@@ -50,8 +50,11 @@ class Post(BaseModel):
 # app.main:app --reload 
 
 get_all_post_query  = 'SELECT * FROM posts ; '
-get_id_post_query   = lambda id: f'SELECT * FROM posts WHERE id = {id}'
-post_query          = lambda title, content, published: f'INSERT INTO posts (title, content, published) VALUES ({title}, {content}, {published}) RETURNING * ; '
+get_id_post_query   = lambda id: f'SELECT * FROM posts WHERE id = {id} '
+# DON'T FORGET THE RETURNING * ; <---- it gives None to fetch error ; INTERNAL SERVER ERROR 
+del_id_post_query   = lambda id: f'DELETE   FROM posts WHERE id = {id} RETURNING * ;'
+post_query          = lambda title, content, is_published: f'INSERT INTO posts (title, content, is_published) VALUES ({title}, {content}, {is_published}) RETURNING * ; '
+update_id_post_query= lambda id,title, content, is_published : f'UPDATE posts SET title = {title}, content = {content}, is_published = {is_published} WHERE id = {id} RETURNING * ; '
 
 my_posts = { 
             0 : {"title" : "title_0", "content":"content_0"},
@@ -143,7 +146,7 @@ def get_posts(id : int, response : Response ):
     cur.execute( get_id_post_query(int(id)) )
     post = cur.fetchone()
     
-    if post is None:
+    if not post :
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with the id requested {id} is not present ; Invalid id ; " )
 
@@ -167,11 +170,13 @@ def create_post(new_post: Post):
         # this is the part where I got SOOO MANY internal server errors !
         cur.execute(
                     "INSERT INTO posts (title, content, is_published) VALUES (%s,%s,%s) RETURNING * ; ", 
+                    # second argument, and third and the rest are SUPPOSED TO BE A TUPLE (iterable) ; 
+                    # so if only ONE %s, then second param has to be (post_dict['title'] , ) <--------- comma is very important ; INDICATING THE TUPLE HERE
                     (post_dict['title'], post_dict['content'], post_dict['is_published']) 
                     )
         
         # Here lies my unsafe but REALLY FKING CLEAN code 😢💔 ;
-        # This absolutely works ; But we don't use it since it's prone to SQL injections ?
+        # # This absolutely works ; But we don't use it since it's prone to SQL injections ?
         # cur.execute(
         #     post_query(
         #         post_dict['title'],
@@ -183,7 +188,8 @@ def create_post(new_post: Post):
         post_created = cur.fetchone()
         print(post_created,"\n\n\n")
 
-        # VERY IMPORTANT !! Commit the transaction on success ; we are did conn.autocommit = False => we need to do it OURSELVES
+        # VERY IMPORTANT !! Commit the transaction on success ;
+        # we are did conn.autocommit = False => we need to do it OURSELVES 
         conn.commit()  
 
         return {
@@ -202,7 +208,8 @@ def signal_handler(sig, frame):
     exit(0)
 
 if __name__ == "__main__":
-    config = Config(app, host="127.0.0.1", port=8000, log_level="info", reload=True)
-    server = Server(config)
+    # config = Config(app, host="127.0.0.1", port=8000, log_level="info", reload=True)
+    # server = Server(config)
+    run("main:app", host="127.0.0.1", port=8000, reload=True, log_level="info") 
     signal(SIGINT, signal_handler)
-    server.run()
+    # server.run()
