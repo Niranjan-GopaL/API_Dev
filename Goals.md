@@ -1,3 +1,19 @@
+## Wednesday (12th June) : 
+- Gooal 
+    - finish upto 6 hours
+    - total coding time > 5 hour
+    - total commit > 40
+
+#### Fire
+1. 8:30am - 10:30am
+- 
+
+
+
+
+
+
+
 ## Tuesday (11th June) : Goal - finish TO 5 hours today
 > No GraphQL unless I finish the below, getting sidetracked is easy ; Don't fall prey !
 - pgadmin 
