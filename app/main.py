@@ -134,26 +134,23 @@ def create_post(new_post: Post):
         print("Post recieved : ", new_post, "\n\n----------------------------------------------------------------------\n\n\n")
         post_dict = new_post.model_dump()
         print("Post in dict() : ", post_dict, "\n\n----------------------------------------------------------------------\n\n")
-
-        if 'is_published' not in post_dict:
-            post_dict['is_published'] = True
-
+        if 'is_published' not in post_dict: post_dict['is_published'] = True
         print(f"title: {post_dict['title']} content:{ post_dict['content']} is_published:{post_dict['is_published']}")
 
         # this is the part where I got SOOO MANY internal server errors !
         cur.execute(
-            "INSERT INTO posts (title, content, is_published) VALUES (%s,%s,%s) RETURNING * ; ", 
-            (post_dict['title'], post_dict['content'], post_dict['is_published']) 
+                    "INSERT INTO posts (title, content, is_published) VALUES (%s,%s,%s) RETURNING * ; ", 
+                    (post_dict['title'], post_dict['content'], post_dict['is_published']) 
                     )
         post_created = cur.fetchone()
-
         print(post_created,"\n\n\n")
 
-        conn.commit()  # Commit the transaction on success
+        # VERY IMPORTANT !! Commit the transaction on success ; we are did conn.autocommit = False => we need to do it OURSELVES
+        conn.commit()  
 
         return {
             "data_received_by_API": post_dict,
-            # THIS IS SERIALIZED by FASTAPI
+            # THIS IS SERIALIZED by FASTAPI !! 
             "data in postgres sql": post_created
         }
     except Exception as e:
@@ -162,33 +159,7 @@ def create_post(new_post: Post):
 
 
 
-# this is how to have a DEFAULT STATUS CODE
-@app.post("/posts/" , status_code=status.HTTP_201_CREATED )
-def post_posts(post: Post):
-    print("Post recieved : ", post, "\n\n----------------------------------------------------------------------\n\n\n")
-    post_dict = post.model_dump()
-    print("Post in dict() : ", post_dict, "\n\n----------------------------------------------------------------------\n\n")
-    
-    if 'is_published' not in post_dict:
-        post_dict['is_published'] = True
-
-    print(f"title: {post_dict['title']} content:{ post_dict['content']} is_published:{post_dict['is_published']}")
-
-    # this is the part where I got SOOO MANY internal server errors !
-    cur.execute(
-        "INSERT INTO posts (title, content, published) VALUES (%s,%s,%s) RETURNING * ; ", 
-        (post_dict['title'], post_dict['content'], post_dict['is_published']) 
-                )
-    post_created = cur.fetchone()
-    conn.commit()  # Commit the transaction on success
-    print(post_created,"\n\n\n")
-    return {
-            "data recieved by API in dictionary form " : post_dict,
-            "data added" : post_created
-        }
-    
 def signal_handler(sig, frame):
-    print('Shutting down Uvicorn server...')
     conn.close()
     exit(0)
 
