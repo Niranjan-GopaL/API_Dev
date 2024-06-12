@@ -79,6 +79,7 @@ def get_posts(id : int, response : Response ):
                             detail=f"post with the id requested {id} is not present ; Invalid id ; " )
 
     return {
+                "this is main_4.py server => " :     id, 
                 "THIS IS THE PATH PARAMETER => " : id, 
                 "THIS IS IT'S TYPE => " : str(type(id))  ,
                 f"post with id={id}" : post 
