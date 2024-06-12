@@ -77,16 +77,27 @@ def get_posts():
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT )
 def delete_post(id:int):
-    print(my_posts)
 
-    # trying to delete with a key that's not present gives => INTERNAL server error
-    if my_posts.__contains__(id):
-        my_posts.pop(id)
-        # del my_posts[id]
-    else:
+    # Here lies my unsafe but REALLY FKING CLEAN code 😢💔 ;
+    # cur.execute( del_id_post_query(id) )
+    cur.execute( 
+                    """DELETE   
+                       FROM posts 
+                       WHERE id = %s 
+                       RETURNING *;  
+                    """,
+                    ( str(id) ,)
+                )
+    post_to_delete = cur.fetchall()
+    print(post_to_delete,"\n\n\n") 
+
+    # trying to delete with a key that's not present gives => INTERNAL server error 
+    if post_to_delete is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"post with the id requested {id} is not present ; Invalid id ; " )
 
+    # VERY IMPORTANT !! Commit the transaction on success ;
+    conn.commit()  
     # for 204, we don't expect ANY return from the API to the client
 
 
