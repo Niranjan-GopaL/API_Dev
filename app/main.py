@@ -1,13 +1,43 @@
 import random
 from fastapi import FastAPI, HTTPException, Response, status
 from pydantic import BaseModel
+from psycopg2.extras import RealDictCursor
+from psycopg2 import connect 
+from time import sleep
 
+
+app = FastAPI()
+
+    
+while True:
+    try :
+        # USE DOTENV and fill these data; you can have a; .env ; .env_for_development; .env_for_production; .env_for_testing
+        conn = connect(
+            host="localhost", 
+            database="Learning-API-dev", 
+            user="postgres", 
+            password="123", 
+            cursor_factory=RealDictCursor
+        )  
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM posts ; ')
+        records = cur.fetchall()
+        print(records)
+        print("\n\nTestSQL Query completed correctly !!----------------------------------------------------\n\n")
+        break  # the only way for this loop to end is if IT SUCCESSFULLY CONNECTS to the db
+    
+    except Exception as error_var :
+        print("Failed to connect to DB ...")
+        print("Error :- \n ", error_var)
+        # 2 seconds() before trying again
+        sleep(2)  
+
+    
 class Post(BaseModel):
      title: str
      content: str
-     
-app = FastAPI()
-
+     is_published : bool = True
+          
 # uvicorn app.main:app --reload ; 
 # <package_name>.<file_name>:<FAST_API instance> 
 # app.main:app --reload 
@@ -20,6 +50,19 @@ my_posts = {
             4 : {"title" : "title_4", "content":"content_4"},
             5 : {"title" : "title_5", "content":"content_5"},
         }
+
+
+# NOTE :-
+# @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
+#                            but somehow the interactive docs was fine with this too ; 
+@app.get("/posts")   # don't need to add the slash unneccasarily 
+def get_posts():
+    cur.execute('SELECT * FROM posts ; ')
+    # use fetchall() to get all rows ; 
+    # fetchone() to get only one row WHEN you identify the row with UNIQUE ID
+    posts = cur.fetchall() 
+    print(posts)
+    return {"data " : posts }
 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT )
@@ -44,16 +87,12 @@ def update_post(updated_post:Post, id: int):
     if my_posts.__contains__(id):
         my_posts[id] = updated_post.model_dump()
     else:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"post with the id requested {id} is not present ; Invalid id ; " )
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"post with the id requested {id} is not present ; Invalid id ; " 
+        )
     return {"data updated ! These are all the posts " : my_posts }
 
-# NOTE :-
-# @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
-#                            but somehow the interactive docs was fine with this too ; 
-@app.get("/posts")   # don't need to add the slash unneccasarily 
-def get_posts():
-    return {"data ---> " : my_posts }
 
 
 def find_post_with_id(id):
