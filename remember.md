@@ -1,3 +1,8 @@
+1. DELETE pycache and restart the server ;
+2. If you have an orphaned process that is running the server :
+    - try `netstat -ano | findstr :8000` finding if the port is being used
+    - if you can't kill it ; try from taskbar
+    - if you still can't ; REBOOT
 
 superuser password : 123 (Lol!)
 - Installation Directory: C:\Program Files\PostgreSQL\16
