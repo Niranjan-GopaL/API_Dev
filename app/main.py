@@ -104,15 +104,31 @@ def delete_post(id:int):
 
 # with put,  NOTE :- even if you wanna update only field, you'll need to pass in everything
 @app.put("/posts/{id}")
-def update_post(updated_post:Post, id: int):
-    if my_posts.__contains__(id):
-        my_posts[id] = updated_post.model_dump()
-    else:
+def update_post(post_to_update: Post, id: int):
+
+    # Here lies my unsafe but REALLY FKING CLEAN code 😢💔 ;
+    # cur.execute( update_id_post_query(id) )
+    cur.execute( """
+                    UPDATE posts 
+                    SET title = %s, content = %s, is_published = %s
+                    WHERE id = %s
+                    RETURNING *;  
+                    """,
+                    ( post_to_update.title, post_to_update.content, post_to_update.is_published, str(id) )
+                )
+
+    updated_post = cur.fetchall()
+    print(updated_post,"\n\n\n") 
+    
+    if updated_post == []:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"post with the id requested {id} is not present ; Invalid id ; " 
         )
-    return {"data updated ! These are all the posts " : my_posts }
+
+    # VERY IMPORTANT !! Commit the transaction on success ;
+    conn.commit()  
+    return {"data updated !" : updated_post }
 
 
 
