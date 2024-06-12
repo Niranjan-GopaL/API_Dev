@@ -38,7 +38,7 @@ def extract_numbers_from_pdf(pdf_path):
 
     for page_num in range(102):
         page = reader.pages[page_num]
-        text = page.get_text("text")
+        text = page.extract_text()
         lines = text.split('\n')  
 
         for line in lines:
@@ -56,17 +56,11 @@ def extract_numbers_from_pdf(pdf_path):
 def write_numbers_to_file(female_numbers, other_numbers, file_path):
 
     def categorize(numbers):
-        dictionary = {
-            "60-70": [],
-            "70-80": [],
-            "80-90": [],
-            "90-100": [],
-            "100-150": [],
-            "150-200": [],
-            ">200": [],
-        }
+        dictionary = { "55-60":[], "60-70": [], "70-80": [], "80-90": [], "90-100": [], "100-150": [], "150-200": [], ">200": [], }
         
         for i in numbers:
+            if i < 60_000:
+                dictionary["55-60"].append(i)
             if i < 70_000:
                 dictionary["60-70"].append(i)
             elif i < 80_000:
@@ -83,45 +77,46 @@ def write_numbers_to_file(female_numbers, other_numbers, file_path):
                 dictionary[">200"].append(i)
         return dictionary
 
-    dict_first_priority = categorize(female_numbers, "Female")
-    dict_second_priority = categorize(other_numbers, "Other")
+    dict_first_priority = categorize(female_numbers)
+    dict_second_priority = categorize(other_numbers)
 
-    # Write the dictionary to a file
-    with open(file_path, 'w') as file:
-        file.write("Category\t60-70\t70-80\t80-90\t90-100\t100-150\t150-200\t>200\n")
-        
-        # Find the maximum number of rows in any category
+    with open(file_path, 'a') as file:
+        # Write the headers
+        headers = dict_first_priority.keys()
+        file.write('\t'.join(headers) + '\n')
+
+        # Write the rows
         max_length = max(len(values) for values in dict_first_priority.values())
-        
-        # Write each row of values
         for i in range(max_length):
             row = []
-            for key in dict_first_priority.keys():
+            for key in headers:
                 if i < len(dict_first_priority[key]):
                     row.append(str(dict_first_priority[key][i]))
                 else:
                     row.append('')
             file.write('\t'.join(row) + '\n')
 
-    with open(file_path, 'a') as file:
-        file.write("Category\t60-70\t70-80\t80-90\t90-100\t100-150\t150-200\t>200\n")
-        
-        # Find the maximum number of rows in any category
-        max_length = max(len(values) for values in dict_second_priority.values())
-        
-        # Write each row of values
-        for i in range(max_length):
-            row = []
-            for key in dict_second_priority.keys():
-                if i < len(dict_second_priority[key]):
-                    row.append(str(dict_second_priority[key][i]))
-                else:
-                    row.append('')
-            file.write('\t'.join(row) + '\n')
+
+        with open(file_path, 'a') as file:
+            # Write the headers
+            headers = dict_second_priority.keys()
+            file.write('\t'.join(headers) + '\n')
+
+            # Write the rows
+            max_length = max(len(values) for values in dict_second_priority.values())
+            for i in range(max_length):
+                row = []
+                for key in headers:
+                    if i < len(dict_second_priority[key]):
+                        row.append(str(dict_second_priority[key][i]))
+                    else:
+                        row.append('')
+                file.write('\t'.join(row) + '\n')
+
 
 
 pdf_path = os.path.join(os.path.dirname(__file__), 'NIT_cutoff.pdf')
-output_file_path = os.path.join(os.path.dirname(__file__), 'ranks.txt')
+output_file_path = os.path.join(os.path.dirname(__file__), 'ranks_finer_v2.txt')
 
 female_numbers, other_numbers = extract_numbers_from_pdf(pdf_path)
 print("Female numbers :", female_numbers)
