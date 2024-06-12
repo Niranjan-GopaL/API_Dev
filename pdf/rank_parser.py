@@ -96,25 +96,3 @@ def filtered_ranks_numbers_to_file(file_path):
 filtered_ranks_numbers_to_file(filter_output_file_path)
 print(f"Numbers have been written to {filter_output_file_path}")
 
-
-
-
-# I WANT TO EXTRACT EACH LINE IN THE PDF FILE ;
-    # maybe split entire text according to \n delimeter so that we have a  list of LINES ; the problem is I DON'T KNOW IF there will be \n in the pdf extract text()
-    # ALL LINES will have 2 numbers in the end <--- this is the BEST WAY TO CLASSIFY the entire text in pdf as LINES 
-# 
-# 1. EACH line MUST HAVE the word "OS" in it ; otherwise don't include it in the list
-# 2. WE NEED ALL NUMBERS whose LINE has the word "Female" in one list [FIRST PRIORITY] ; all the other numbers in another list [SECOND PRIORITY] ;
-
-""" THIS IS HOW EACH LINE OF PDF LOOKS LIKE
-National Institute of Technology, Kurukshetra Production and Industrial Engineering (4 Years, Bachelor of Technology) OS ST Gender-Neutral 2766 2923
-National Institute of Technology, Kurukshetra Production and Industrial Engineering (4 Years, Bachelor of Technology) OS ST Female-only (including Supernumerary) 3805 3805
-National Institute of Technology, Manipur Civil Engineering (4 Years, Bachelor of Technology) HS OPEN Gender-Neutral 108496 208858
-National Institute of Technology, Manipur Civil Engineering (4 Years, Bachelor of Technology) HS OPEN Female-only (including Supernumerary) 188427 188427
-National Institute of Technology, Rourkela Bio Technology (4 Years, Bachelor of Technology) OS OBC-NCL Female-only (including Supernumerary) 18954 18954
-National Institute of Technology, Rourkela Bio Technology (4 Years, Bachelor of Technology) OS SC Gender-Neutral 5815 6639
-National Institute of Technology, Rourkela Bio Technology (4 Years, Bachelor of Technology) OS SC Female-only (including Supernumerary) 5361 5361
-National Institute of Technology, Rourkela Bio Technology (4 Years, Bachelor of Technology) OS ST Gender-Neutral 612 612
-National Institute of Technology, Rourkela Ceramic Engineering (4 Years, Bachelor of Technology) HS OPEN Gender-Neutral 45990 57029
-National Institute of Technology, Rourkela Ceramic Engineering (4 Years, Bachelor of Technology) HS OPEN Female-only (including Supernumerary) 52956 53962
-"""
