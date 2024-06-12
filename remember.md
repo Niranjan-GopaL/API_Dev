@@ -9,6 +9,11 @@ You can commit SECTIONS OF CODE ; like this :-
 3. DON'T FORGET TO WRITE returning *; after UPDATE, INSERT, DELETE otherwise IT WILL GIVE
     INTERNAL SERVER ERROR; and give a `Nothing to fetch` error
 
+> So if the result of a .fetchall() is empty, REMEMBER IT IS `[]`
+> if updated_post == []  <--- correct way
+> if not updated_post    <--- safest way
+print(  None is [] ) =========> False
+print(  None == [] ) =========> False
 
 
 superuser password : 123 (Lol!)
