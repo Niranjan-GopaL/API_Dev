@@ -3,6 +3,8 @@
     - try `netstat -ano | findstr :8000` finding if the port is being used
     - if you can't kill it ; try from taskbar
     - if you still can't ; REBOOT
+3. DON'T FORGET TO WRITE returning *; after UPDATE, INSERT, DELETE otherwise IT WILL GIVE
+    INTERNAL SERVER ERROR; and give a `Nothing to fetch` error
 
 superuser password : 123 (Lol!)
 - Installation Directory: C:\Program Files\PostgreSQL\16
