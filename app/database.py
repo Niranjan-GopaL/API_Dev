@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker
 
 # All DB HAS A URL with format similar to :-
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:123@Local_Postgres_Instance/Learning-API-dev"
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:123@localhost/Learning-API-dev"
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"    
 
 # what helps ORM to connect to DB

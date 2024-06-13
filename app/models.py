@@ -9,10 +9,11 @@ from .database import Base
 -> does not support nested relationships
 """
 class Post(Base):
-    __tablename__ = "posts"
+    __tablename__ = "new_table_from_sql_alchemy"
 
-    id         =  Column(Integer, nullable=False, primary_key=True )
+    id_sqlalc  =  Column(Integer, nullable=False, primary_key=True )
     title      =  Column(String, nullable=False)
     content    =  Column(String, nullable=False)
     published  =  Column(Boolean, nullable=False, server_default='TRUE')
+    # if you 
     created_at =  Column(TIMESTAMP(timezone=True),nullable=False, server_default=text('now()'))
