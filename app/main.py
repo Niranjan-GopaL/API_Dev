@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Response, status
 from uvicorn import run
+from fastapi import Depends # for passing in the db_session_maker fn as a dependency
 
 from pydantic import BaseModel
 from psycopg2.extras import RealDictCursor
@@ -10,12 +11,21 @@ from sys import exit
 from time import sleep
 
 # THIS IS HOW YOU IMPORT FROM you're own  PACKAGE ;
-from . import models
-from .database import engine, SessionLocal
+# from . import models <-----------------------------------------------| Beware
+# from .database import engine, SessionLocal  <------------------------| These SUCK ASS ; IMPORTING and STRUCTRE OF PACKAGES and SUBPACKAGES are not easy thing
+# now on just use ` uvicorn app.main:app --reload` <------------ if that can't exit problem rises up again then spend time on this again
+
+from app import models
+from app.database import engine, SessionLocal
+from sqlalchemy.orm import Session
+
 
 app = FastAPI()
 
-models.Base.metadata.create_all(bind = engine)  # this engine is HOW you connect to the db
+# this engine is HOW you connect to the db
+models.Base.metadata.create_all(bind = engine)  
+
+# NOTE :- The key point : Now every time we perform a PATH OPERATION, we use this function to create new session and connect to DB
 def get_db():
     db = SessionLocal()
     try:
@@ -66,14 +76,10 @@ del_id_post_query   = lambda id: f'DELETE   FROM posts WHERE id = {id} RETURNING
 post_query          = lambda title, content, is_published: f'INSERT INTO posts (title, content, is_published) VALUES ({title}, {content}, {is_published}) RETURNING * ; '
 update_id_post_query= lambda id,title, content, is_published : f'UPDATE posts SET title = {title}, content = {content}, is_published = {is_published} WHERE id = {id} RETURNING * ; '
 
-my_posts = { 
-            0 : {"title" : "title_0", "content":"content_0"},
-            1 : {"title" : "title_1", "content":"content_1"},
-            2 : {"title" : "title_2", "content":"content_2"},
-            3 : {"title" : "title_3", "content":"content_3"},
-            4 : {"title" : "title_4", "content":"content_4"},
-            5 : {"title" : "title_5", "content":"content_5"},
-        }
+
+@app.get("/sql_alchemy")
+def test_fn(db: Session = Depends(get_db)): 
+    return {"data" : "SUCCESS"}
 
 
 # NOTE :-
