@@ -9,11 +9,11 @@ from .database import Base
 -> does not support nested relationships
 """
 class Post(Base):
-    __tablename__ = "new_table_from_sql_alchemy"
+    __tablename__ = "yet_another_table"
 
     id_sqlalc  =  Column(Integer, nullable=False, primary_key=True )
     title      =  Column(String, nullable=False)
     content    =  Column(String, nullable=False)
     published  =  Column(Boolean, nullable=False, server_default='TRUE')
-    # if you 
+    # if you make any changes it won't be reflected in the postgres IF THE TABLE IS ALREADY CREATED 
     created_at =  Column(TIMESTAMP(timezone=True),nullable=False, server_default=text('now()'))

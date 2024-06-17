@@ -49,7 +49,7 @@ def get_db():
 
 
 @app.get("/sql_alchemy/posts")
-def test_fn(db: Session = Depends(get_db)): 
+def get_all_posts(db: Session = Depends(get_db)): 
     print(" -> Models is the module responsible for creating the TABLE ( it has all the blueprint ) ")
     print(" -> Post is the TABLE CLASS we defined ")
     
@@ -70,9 +70,36 @@ def test_fn(db: Session = Depends(get_db)):
     return {"data" : all_posts_data }
 
 
-@app.post("/posts", status_code=status.HTTP_201_CREATED)
-def create_post(new_post: models.Post, db: Session = Depends(get_db)):
-    post = models.Post(**new_post.dict())
+# SQL WAY to do this is :-
+
+# @app.post("/posts", status_code=status.HTTP_201_CREATED)
+# def create_post(new_post: Post):
+#     try:
+#         post_dict = new_post.model_dump()
+#         if 'is_published' not in post_dict: post_dict['is_published'] = True
+#         print(f"title: {post_dict['title']} content:{ post_dict['content']} is_published:{post_dict['is_published']}")
+
+#         # this is the part where I got SOOO MANY internal server errors !
+#         cur.execute( "INSERT INTO posts (title, content, is_published) VALUES (%s,%s,%s) RETURNING * ; ",  (post_dict['title'], post_dict['content'], post_dict['is_published'])  )
+#         post_created = cur.fetchone()
+#      
+#         conn.commit()  
+#         return { "data_received_by_API": post_dict, "data in postgres sql": post_created }
+#     except Exception as e:
+#         conn.rollback()  # Rollback the transaction on error
+#         raise HTTPException(status_code=500, detail=str(e))
+
+class Post(BaseModel):
+     title: str
+     content: str
+     published : bool = True
+     
+@app.post("/sql_alchemy/posts", status_code=status.HTTP_201_CREATED)
+# def create_post(new_post: models.Post, db: Session = Depends(get_db)): <--------- this is ERROR ; we can ONLY VALIDATE with Pydantic objects
+# models.Post isn't a valid Pydantic model ; WE WANT THE OLD class Post for FastAPI to Validate
+def create_post(new_post: Post, db: Session = Depends(get_db)):
+    # post = models.Post(  )
+    post = models.Post( **new_post.model_dump() )
     db.add(post)
     db.commit()
     db.refresh(post)
