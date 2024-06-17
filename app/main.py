@@ -3,12 +3,9 @@ from uvicorn import run
 from fastapi import Depends # for passing in the db_session_maker fn as a dependency
 
 from pydantic import BaseModel
-from psycopg2.extras import RealDictCursor
-from psycopg2 import connect 
 
 from signal import signal, SIGINT
 from sys import exit
-from time import sleep
 
 # THIS IS HOW YOU IMPORT FROM you're own  PACKAGE ;
 # from . import models <-----------------------------------------------| Beware
@@ -18,6 +15,7 @@ from time import sleep
 
 from app import models
 from app.database import engine, SessionLocal
+from app.database import get_db
 from sqlalchemy.orm import Session
 
 
@@ -26,15 +24,7 @@ app = FastAPI()
 # this engine is HOW you CRAEATE A TABLE to the db
 models.Base.metadata.create_all(bind = engine)  
 
-# NOTE :- 
-# The key point : Now every time we perform a PATH OPERATION,
-# { we use this function to create new session and connect to DB } !!!
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+
         
 # NOTE :-
 # # @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
@@ -98,7 +88,8 @@ class Post(BaseModel):
 # def create_post(new_post: models.Post, db: Session = Depends(get_db)): <--------- this is ERROR ; we can ONLY VALIDATE with Pydantic objects
 # models.Post isn't a valid Pydantic model ; WE WANT THE OLD class Post for FastAPI to Validate
 def create_post(new_post: Post, db: Session = Depends(get_db)):
-    # post = models.Post(  )
+    # post = models.Post( title=new_post.title, content=new_post.content, published=new_post.published  ) <-- THIS IS WHAT IS HAPPENING UNDERNEATH
+    # todo :- what is unpacking ? WHERE ELSE IS IT AS POWERFUL AS HERE ?
     post_recieved_and_serialised = models.Post( **new_post.model_dump() )
     print(post_recieved_and_serialised)
 
@@ -114,7 +105,9 @@ def get_post(id: int, db: Session = Depends(get_db)):
     post_query = db.query(models.Post).filter(
             models.Post.id_sqlalc == id
         )
-    post = post_query.first()
+    
+    # you wanna STOP once you find the first entry with the asked id since id is UNIQUE
+    post = post_query.first() 
     print("This is the post that was asked by the client :-\n", post)
 
     if post is None:

@@ -20,6 +20,15 @@ engine = create_engine(
     each request gets its own DB connection session IN A DEPENDENCY, 
 """
 
+# NOTE :- 
+# The key point : Now every time we perform a PATH OPERATION,
+# { we use this function to create new session and connect to DB } !!!
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
 # Everytime we want to talk to DB => we create a new session, => which will create a new connection ; 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
