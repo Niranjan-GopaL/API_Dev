@@ -33,6 +33,40 @@ def get_db():
     finally:
         db.close()
     
+# NOTE :-
+# # @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
+# #                            but somehow the interactive docs was fine with this too ; 
+# @app.get("/posts")   # don't need to add the slash unneccasarily 
+# def get_posts():
+#     cur.execute(get_all_post_query)
+#     # use fetchall() to get all rows ; fetchone() to get only one row WHEN you identify the row with UNIQUE ID
+#     posts = cur.fetchall() 
+#     print(posts)
+#     return {"data " : posts }
+
+
+@app.get("/sql_alchemy/posts")
+def test_fn(db: Session = Depends(get_db)): 
+    print(" -> Models is the module responsible for creating the TABLE ( it has all the blueprint ) ")
+    print(" -> Post is the TABLE CLASS we defined ")
+    
+    
+    # THIS IS SHOCKING ; THE data that it retrieves is JUST A SEQUEL COMMAND !!
+    tHIS_IS_JUST_A_SQL_QUERY = db.query(models.Post)
+    print(tHIS_IS_JUST_A_SQL_QUERY)
+    """
+    This is what db.query(TABLE_CLASS_NAME) does !!
+
+    SELECT yet_another_table.id_sqlalc AS yet_another_table_id_sqlalc, yet_another_table.title AS yet_another_table_title, yet_another_table.content AS yet_another_table_content, yet_another_table.published AS yet_another_table_published, yet_another_table.created_at AS yet_another_table_created_at
+    FROM yet_another_table
+    """
+
+    #               asking db to QUERY THIS TABLE ; retrieve all the DATA FROM THIS TABLE
+    all_posts_data = db.query(models.Post).all()
+    print("Quering completed, Data retrieved ...")
+    return {"data" : all_posts_data }
+
+
 while True:
     try :
         # USE DOTENV and fill these data; you can have a; .env ; .env_for_development; .env_for_production; .env_for_testing
