@@ -69,6 +69,16 @@ def test_fn(db: Session = Depends(get_db)):
     print("Quering completed, Data retrieved ...")
     return {"data" : all_posts_data }
 
+
+@app.post("/posts", status_code=status.HTTP_201_CREATED)
+def create_post(new_post: models.Post, db: Session = Depends(get_db)):
+    post = models.Post(**new_post.dict())
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return post
+
+
 def signal_handler(sig, frame):
     exit(0)
 
