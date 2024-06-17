@@ -99,22 +99,46 @@ class Post(BaseModel):
 # models.Post isn't a valid Pydantic model ; WE WANT THE OLD class Post for FastAPI to Validate
 def create_post(new_post: Post, db: Session = Depends(get_db)):
     # post = models.Post(  )
-    post = models.Post( **new_post.model_dump() )
-    db.add(post)
+    post_recieved_and_serialised = models.Post( **new_post.model_dump() )
+    print(post_recieved_and_serialised)
+
+    db.add(post_recieved_and_serialised)
     db.commit()
-    db.refresh(post)
-    return post
+    db.refresh(post_recieved_and_serialised)
+    
+    return post_recieved_and_serialised
 
 
-@app.get("/posts/{id}")
+@app.get("/sql_alchemy/posts/{id}")
 def get_post(id: int, db: Session = Depends(get_db)):
-    post = db.query(models.Post).filter(
+    post_query = db.query(models.Post).filter(
             models.Post.id_sqlalc == id
-        ).first()
+        )
+    post = post_query.first()
+    print("This is the post that was asked by the client :-\n", post)
+
     if post is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail=f"Post with id {id} not found")
     return post
+
+@app.put("/sql_alchemy/posts/{id}")
+def update_post(id: int, post_to_update: Post, db: Session = Depends(get_db)):
+    post_query = db.query(models.Post).filter(
+            models.Post.id_sqlalc == id
+        )
+    post = post_query.first()
+    print("This is the post that was asked by the client to update :- \n", post_query)
+    
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with id {id} not found")
+
+    post_query.update(post_to_update.model_dump())
+    print("IT HAS BEEN UPDATED !!!")
+    db.commit()
+    return {"data updated!": post_query.first()}
+
 
 
 def signal_handler(sig, frame):
