@@ -13,7 +13,8 @@ from time import sleep
 # THIS IS HOW YOU IMPORT FROM you're own  PACKAGE ;
 # from . import models <-----------------------------------------------| Beware
 # from .database import engine, SessionLocal  <------------------------| These SUCK ASS ; IMPORTING and STRUCTRE OF PACKAGES and SUBPACKAGES are not easy thing
-# now on just use ` uvicorn app.main:app --reload` <------------ if that can't exit problem rises up again then spend time on this again
+# now on just use ` uvicorn app.main:app --reload` <-------------------| if that can't exit problem rises up again then spend 
+#                                                                        time on this again
 
 from app import models
 from app.database import engine, SessionLocal
@@ -22,17 +23,19 @@ from sqlalchemy.orm import Session
 
 app = FastAPI()
 
-# this engine is HOW you connect to the db
+# this engine is HOW you CRAEATE A TABLE to the db
 models.Base.metadata.create_all(bind = engine)  
 
-# NOTE :- The key point : Now every time we perform a PATH OPERATION, we use this function to create new session and connect to DB
+# NOTE :- 
+# The key point : Now every time we perform a PATH OPERATION,
+# { we use this function to create new session and connect to DB } !!!
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
         db.close()
-    
+        
 # NOTE :-
 # # @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
 # #                            but somehow the interactive docs was fine with this too ; 
@@ -93,40 +96,28 @@ while True:
         # 2 seconds() before trying again
         sleep(2)  
 
+# Older methode
     
-class Post(BaseModel):
-     title: str
-     content: str
-     is_published : bool = True
+# class Post(BaseModel):
+#      title: str
+#      content: str
+#      is_published : bool = True
           
-# uvicorn app.main:app --reload ; 
-# <package_name>.<file_name>:<FAST_API instance> 
-# app.main:app --reload 
+# # uvicorn app.main:app --reload ; 
+# # <package_name>.<file_name>:<FAST_API instance> 
+# # app.main:app --reload 
 
-get_all_post_query  = 'SELECT * FROM posts ; '
-get_id_post_query   = lambda id: f'SELECT * FROM posts WHERE id = {id} '
-# DON'T FORGET THE RETURNING * ; <---- it gives None to fetch error ; INTERNAL SERVER ERROR 
-del_id_post_query   = lambda id: f'DELETE   FROM posts WHERE id = {id} RETURNING * ;'
-post_query          = lambda title, content, is_published: f'INSERT INTO posts (title, content, is_published) VALUES ({title}, {content}, {is_published}) RETURNING * ; '
-update_id_post_query= lambda id,title, content, is_published : f'UPDATE posts SET title = {title}, content = {content}, is_published = {is_published} WHERE id = {id} RETURNING * ; '
-
-
-@app.get("/sql_alchemy")
-def test_fn(db: Session = Depends(get_db)): 
-    return {"data" : "SUCCESS"}
+# get_all_post_query  = 'SELECT * FROM posts ; '
+# get_id_post_query   = lambda id: f'SELECT * FROM posts WHERE id = {id} '
+# # DON'T FORGET THE RETURNING * ; <---- it gives None to fetch error ; INTERNAL SERVER ERROR 
+# del_id_post_query   = lambda id: f'DELETE   FROM posts WHERE id = {id} RETURNING * ;'
+# post_query          = lambda title, content, is_published: f'INSERT INTO posts (title, content, is_published) VALUES ({title}, {content}, {is_published}) RETURNING * ; '
+# update_id_post_query= lambda id,title, content, is_published : f'UPDATE posts SET title = {title}, content = {content}, is_published = {is_published} WHERE id = {id} RETURNING * ; '
 
 
-# NOTE :-
-# @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
-#                            but somehow the interactive docs was fine with this too ; 
-@app.get("/posts")   # don't need to add the slash unneccasarily 
-def get_posts():
-    cur.execute(get_all_post_query)
-    # use fetchall() to get all rows ; fetchone() to get only one row WHEN you identify the row with UNIQUE ID
-    posts = cur.fetchall() 
-    print(posts)
-    return {"data " : posts }
 
+
+# 
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT )
 def delete_post(id:int):
