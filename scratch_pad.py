@@ -15,3 +15,9 @@ print(dictionary)
 # if not updated_post    <--- safest way
 print(  None is [] )
 print(  None == [] )
+
+'''How to make symlinks in WINDOWS
+mklink "C:\Users\HP\AppData\Roaming\Code\User\keybindings.json" "D:\Code Practise\dotfiles\vscode config\keybindings.json"
+mklink "C:\Users\HP\AppData\Roaming\Code\User\settings.json" "D:\Code Practise\dotfiles\vscode config\settings.json"
+mklink "C:\Users\HP\AppData\Roaming\Code\User\tasks.json" "D:\Code Practise\dotfiles\vscode config\tasks.json"
+'''
