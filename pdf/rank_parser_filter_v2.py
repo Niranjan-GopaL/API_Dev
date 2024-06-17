@@ -5,7 +5,7 @@
 # 1. EACH line MUST HAVE the word "OS" in it ; otherwise don't include it in the list
 # 2. WE NEED ALL NUMBERS whose LINE has the word "Female" in one list [FIRST PRIORITY] ; all the other numbers in another list [SECOND PRIORITY] ;
 
-""" THIS IS HOW EACH LINE OF PDF LOOKS LIKE
+""" THIS IS HOW EACH LINE OF PDF NEED TO LOOK LIKE
 National Institute of Technology, Kurukshetra Production and Industrial Engineering (4 Years, Bachelor of Technology) OS ST Gender-Neutral 2766 2923
 National Institute of Technology, Kurukshetra Production and Industrial Engineering (4 Years, Bachelor of Technology) OS ST Female-only (including Supernumerary) 3805 3805
 National Institute of Technology, Manipur Civil Engineering (4 Years, Bachelor of Technology) HS OPEN Gender-Neutral 108496 208858
@@ -81,11 +81,9 @@ def write_numbers_to_file(female_numbers, other_numbers, file_path):
     dict_second_priority = categorize(other_numbers)
 
     with open(file_path, 'a') as file:
-        # Write the headers
         headers = dict_first_priority.keys()
         file.write('\t'.join(headers) + '\n')
 
-        # Write the rows
         max_length = max(len(values) for values in dict_first_priority.values())
         for i in range(max_length):
             row = []
@@ -98,11 +96,9 @@ def write_numbers_to_file(female_numbers, other_numbers, file_path):
 
 
         with open(file_path, 'a') as file:
-            # Write the headers
             headers = dict_second_priority.keys()
             file.write('\t'.join(headers) + '\n')
 
-            # Write the rows
             max_length = max(len(values) for values in dict_second_priority.values())
             for i in range(max_length):
                 row = []
