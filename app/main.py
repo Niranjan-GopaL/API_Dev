@@ -106,6 +106,17 @@ def create_post(new_post: Post, db: Session = Depends(get_db)):
     return post
 
 
+@app.get("/posts/{id}")
+def get_post(id: int, db: Session = Depends(get_db)):
+    post = db.query(models.Post).filter(
+            models.Post.id_sqlalc == id
+        ).first()
+    if post is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with id {id} not found")
+    return post
+
+
 def signal_handler(sig, frame):
     exit(0)
 
