@@ -132,6 +132,16 @@ def update_post(id: int, post_to_update: Post, db: Session = Depends(get_db)):
     db.commit()
     return {"data updated!": post_query.first()}
 
+@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int, db: Session = Depends(get_db)):
+    delete_post_query = db.query(models.Post).filter(models.Post.id_sqlalc == id)
+    post_to_delete = delete_post_query.first()
+    if post_to_delete is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"Post with id {id} not found")
+    db.delete(post_to_delete)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 def signal_handler(sig, frame):
