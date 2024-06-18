@@ -1,4 +1,7 @@
 from sqlite3 import OperationalError
+from sqlalchemy.orm import Session
+
+from typing import List
 from fastapi import FastAPI, HTTPException, Response, status
 from uvicorn import run
 from fastapi import Depends # for passing in the db_session_maker fn as a dependency
@@ -14,10 +17,10 @@ from sys import exit
 #                                                                        time on this again
 
 from app import models
-from app.database import engine, SessionLocal
+from app import schema
+from app.database import engine
 from app.database import get_db
-from sqlalchemy.orm import Session
-from app.schema import Post_Create_Schema,Post_Update_Schema
+from app.schema import Create_User_Schema, Post_Create_Schema, Post_Response_Schema,Post_Update_Schema, Response_User_Schema
 
 
 app = FastAPI()
@@ -26,20 +29,33 @@ app = FastAPI()
 models.Base.metadata.create_all(bind = engine)  
 
 
+@app.get("/users", response_model=List[schema.Response_User_Schema])
+def get_all_user(db: Session = Depends(get_db)):
+    query = db.query(models.User)
+    print(query)
+    users = query.all()
+    return users
+
+
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schema.Response_User_Schema)
+def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
+    try:
+        user_recieved_and_serialised = models.User( **new_user.model_dump() )
+        print(user_recieved_and_serialised)
+
+        db.add(user_recieved_and_serialised)
+        db.commit()
+        db.refresh(user_recieved_and_serialised)
         
-# NOTE :-
-# # @app.get("/posts/") <----- this did not work for some reason in POSTMAN and in web_browser ;
-# #                            but somehow the interactive docs was fine with this too ; 
-# @app.get("/posts")   # don't need to add the slash unneccasarily 
-# def get_posts():
-#     cur.execute(get_all_post_query)
-#     # use fetchall() to get all rows ; fetchone() to get only one row WHEN you identify the row with UNIQUE ID
-#     posts = cur.fetchall() 
-#     print(posts)
-#     return {"data " : posts }
-
-
-@app.get("/sql_alchemy/posts")
+        return user_recieved_and_serialised
+   
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
+ 
+   
+# GET
+@app.get("/sql_alchemy/posts", response_model=List[Post_Response_Schema])
 def get_all_posts(db: Session = Depends(get_db)): 
     print(" -> Models is the module responsible for creating the TABLE ( it has all the blueprint ) ")
     print(" -> Post is the TABLE CLASS we defined ")
@@ -59,6 +75,9 @@ def get_all_posts(db: Session = Depends(get_db)):
     all_posts_data = db.query(models.Post).all()
     print("Quering completed, Data retrieved ...")
     return all_posts_data
+
+
+# POST
 
 # POST a "post"
 # SQL WAY to do this is :-
@@ -87,7 +106,7 @@ def get_all_posts(db: Session = Depends(get_db)):
 #      content: str
 #      published : bool = True
      
-@app.post("/sql_alchemy/posts", status_code=status.HTTP_201_CREATED)
+@app.post("/sql_alchemy/posts", status_code=status.HTTP_201_CREATED, response_model=Post_Response_Schema)
 # def create_post(new_post: models.Post, db: Session = Depends(get_db)): <--------- this is ERROR ; we can ONLY VALIDATE with Pydantic objects
 # models.Post isn't a valid Pydantic model ; WE WANT THE OLD class Post for FastAPI to Validate
 def create_post(new_post: Post_Create_Schema, db: Session = Depends(get_db)):
@@ -107,7 +126,9 @@ def create_post(new_post: Post_Create_Schema, db: Session = Depends(get_db)):
                             detail="Database Unavailable, please try again later...")
 
 
-@app.get("/sql_alchemy/posts/{id}")
+
+# GET {id}
+@app.get("/sql_alchemy/posts/{id}", response_model=Post_Response_Schema)
 def get_post(id: int, db: Session = Depends(get_db)):
     try:
         post_query = db.query(models.Post).filter(
@@ -126,6 +147,8 @@ def get_post(id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                             detail="Database Unavailable, please try again later...")
 
+
+# PUT {id}
 @app.put("/sql_alchemy/posts/{id}")
 def update_post(id: int, post_to_update: Post_Update_Schema, db: Session = Depends(get_db)):
     try:
@@ -149,7 +172,8 @@ def update_post(id: int, post_to_update: Post_Update_Schema, db: Session = Depen
                             detail="Database Unavailable, please try again later...")
     
 
-@app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+# DELETE {id}
+@app.delete("/sql_alchemy/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
     try:
         delete_post_query = db.query(models.Post).filter(models.Post.id_sqlalc == id)
@@ -163,6 +187,7 @@ def delete_post(id: int, db: Session = Depends(get_db)):
     except OperationalError:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                             detail="Database Unavailable, please try again later...")
+
 
 def signal_handler(sig, frame):
     exit(0)
