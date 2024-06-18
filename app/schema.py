@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 
 
 class Post(BaseModel):
@@ -25,7 +25,7 @@ class Update_Post(BaseModel):
 class Update_Title_Post(BaseModel):
     title : str
 
-class User(BaseModel):
+class Person(BaseModel):
     id: int
     is_active: bool
     class Config:
@@ -63,9 +63,14 @@ class Post_Base_Schema(BaseModel):
 
 # Pydantic's orm_mode will tell the Pydantic model to read the data even if it is not a dict, 
 # but an ORM model (or any other arbitrary object with attributes).
-# see :- https://fastapi.tiangolo.com/tutorial/sql-databases/#use-pydantics-orm_mode 
+# see :- https://fastapi.tiangolo.com/tutorial/sql-databases/#use-pydantics-orm_mode  
     class Config:
-        orm_mode = True
+        # orm_mode = True
+        
+# D:\Code Practise\API_Dev\API_in_win\Lib\site-packages\pydantic\_internal\_config.py:334:  Warning: Valid config keys have changed in V2:
+#  'orm_mode' has been renamed to 'from_attributes'
+#   warnings.warn(message, UserWarning)
+        from_attributes = True
 
 class Post_Create_Schema(Post_Base_Schema):
     pass
@@ -73,9 +78,19 @@ class Post_Create_Schema(Post_Base_Schema):
 class Post_Update_Schema(Post_Base_Schema):
     published : bool   
     
-class Post_Response_Schema(Post):
-    title : str
-    content : str
-    published : bool = True   
+class Post_Response_Schema(Post_Base_Schema):
     # the front end would want to render this out ;  
+    published : bool   
+    created_at : datetime 
+    
+# -------------------------- USERS ------------------------
+
+class User(BaseModel):
+    email    : EmailStr
+    password : str
+class Response_User_Schema(User):
+    id         : int
     created_at : datetime
+
+class Create_User_Schema(User):
+    pass
