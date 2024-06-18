@@ -1,8 +1,8 @@
+from sqlite3 import OperationalError
 from fastapi import FastAPI, HTTPException, Response, status
 from uvicorn import run
 from fastapi import Depends # for passing in the db_session_maker fn as a dependency
 
-from pydantic import BaseModel
 
 from signal import signal, SIGINT
 from sys import exit
@@ -17,6 +17,7 @@ from app import models
 from app.database import engine, SessionLocal
 from app.database import get_db
 from sqlalchemy.orm import Session
+from app.schema import Post_Create_Schema,Post_Update_Schema
 
 
 app = FastAPI()
@@ -57,9 +58,9 @@ def get_all_posts(db: Session = Depends(get_db)):
     #               asking db to QUERY THIS TABLE ; retrieve all the DATA FROM THIS TABLE
     all_posts_data = db.query(models.Post).all()
     print("Quering completed, Data retrieved ...")
-    return {"data" : all_posts_data }
+    return all_posts_data
 
-
+# POST a "post"
 # SQL WAY to do this is :-
 
 # @app.post("/posts", status_code=status.HTTP_201_CREATED)
@@ -79,70 +80,89 @@ def get_all_posts(db: Session = Depends(get_db)):
 #         conn.rollback()  # Rollback the transaction on error
 #         raise HTTPException(status_code=500, detail=str(e))
 
-class Post(BaseModel):
-     title: str
-     content: str
-     published : bool = True
+# THIS is a REALLY IMPORTANT PIECE OF CODE  ; this is what the FASTAPI uses as a VALIDATION MODEL ; 
+# This is the schema
+# class Post(BaseModel):
+#      title: str
+#      content: str
+#      published : bool = True
      
 @app.post("/sql_alchemy/posts", status_code=status.HTTP_201_CREATED)
 # def create_post(new_post: models.Post, db: Session = Depends(get_db)): <--------- this is ERROR ; we can ONLY VALIDATE with Pydantic objects
 # models.Post isn't a valid Pydantic model ; WE WANT THE OLD class Post for FastAPI to Validate
-def create_post(new_post: Post, db: Session = Depends(get_db)):
-    # post = models.Post( title=new_post.title, content=new_post.content, published=new_post.published  ) <-- THIS IS WHAT IS HAPPENING UNDERNEATH
-    # todo :- what is unpacking ? WHERE ELSE IS IT AS POWERFUL AS HERE ?
-    post_recieved_and_serialised = models.Post( **new_post.model_dump() )
-    print(post_recieved_and_serialised)
+def create_post(new_post: Post_Create_Schema, db: Session = Depends(get_db)):
+    try:
+        # post = models.Post( title=new_post.title, content=new_post.content, published=new_post.published  ) <-- THIS IS WHAT IS HAPPENING UNDERNEATH
+        # todo :- what is unpacking ? WHERE ELSE IS IT AS POWERFUL AS HERE ?
+        post_recieved_and_serialised = models.Post( **new_post.model_dump() )
+        print(post_recieved_and_serialised)
 
-    db.add(post_recieved_and_serialised)
-    db.commit()
-    db.refresh(post_recieved_and_serialised)
-    
-    return post_recieved_and_serialised
+        db.add(post_recieved_and_serialised)
+        db.commit()
+        db.refresh(post_recieved_and_serialised)
+        
+        return post_recieved_and_serialised
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
 
 
 @app.get("/sql_alchemy/posts/{id}")
 def get_post(id: int, db: Session = Depends(get_db)):
-    post_query = db.query(models.Post).filter(
-            models.Post.id_sqlalc == id
-        )
-    
-    # you wanna STOP once you find the first entry with the asked id since id is UNIQUE
-    post = post_query.first() 
-    print("This is the post that was asked by the client :-\n", post)
+    try:
+        post_query = db.query(models.Post).filter(
+                models.Post.id_sqlalc == id
+            )
+        
+        # you wanna STOP once you find the first entry with the asked id since id is UNIQUE
+        post = post_query.first() 
+        print("This is the post that was asked by the client :-\n", post)
 
-    if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with id {id} not found")
-    return post
+        if post is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Post with id {id} not found")
+        return post
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
 
 @app.put("/sql_alchemy/posts/{id}")
-def update_post(id: int, post_to_update: Post, db: Session = Depends(get_db)):
-    post_query = db.query(models.Post).filter(
-            models.Post.id_sqlalc == id
-        )
-    post = post_query.first()
-    print("This is the post that was asked by the client to update :- \n", post_query)
-    
-    if post is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with id {id} not found")
+def update_post(id: int, post_to_update: Post_Update_Schema, db: Session = Depends(get_db)):
+    try:
+        post_query = db.query(models.Post).filter(
+                models.Post.id_sqlalc == id
+            )
+        post = post_query.first()
+        print("This is the post that was asked by the client to update :- \n", post_query)
+        
+        if post is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Post with id {id} not found")
 
-    post_query.update(post_to_update.model_dump())
-    print("IT HAS BEEN UPDATED !!!")
-    db.commit()
-    return {"data updated!": post_query.first()}
+        post_query.update(post_to_update.model_dump())
+        print("IT HAS BEEN UPDATED !!!")
+        db.commit()
+        updated_post = post_query.first()
+        return  updated_post
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
+    
 
 @app.delete("/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_post(id: int, db: Session = Depends(get_db)):
-    delete_post_query = db.query(models.Post).filter(models.Post.id_sqlalc == id)
-    post_to_delete = delete_post_query.first()
-    if post_to_delete is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                            detail=f"Post with id {id} not found")
-    db.delete(post_to_delete)
-    db.commit()
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
-
+    try:
+        delete_post_query = db.query(models.Post).filter(models.Post.id_sqlalc == id)
+        post_to_delete = delete_post_query.first()
+        if post_to_delete is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Post with id {id} not found")
+        db.delete(post_to_delete)
+        db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
 
 def signal_handler(sig, frame):
     exit(0)
