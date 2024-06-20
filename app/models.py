@@ -23,6 +23,8 @@ class User(Base):
     # can't have same email twice ;  
     name        = Column(String, nullable=False)
     id          = Column(Integer,nullable=False, primary_key=True)  
+    # NOTE :- Sending a duplicate email STRAIGHT UP GIVES 500 INTERNAL SERVER ERROR ; => SERVER CRASH 
+    # this unique constrain is dangerous damn !
     email       = Column(String, nullable=False, unique=True) 
     password    = Column(String, nullable=False )
     created_at  = Column(TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
