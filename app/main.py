@@ -79,6 +79,28 @@ def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                             detail="Database Unavailable, please try again later...")
  
+ 
+@app.get("/sql_alchemy/users/{id}", response_model=Response_User_Schema)
+def get_user(id : int, db: Session = Depends(get_db) ):
+    try:
+        query = db.query( models.User ).filter( models.User.id == id )
+        print(query)
+        user = query.first()
+        print("This is the user that was asked by the client :-\n", user.__dict__)
+
+        if user is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Post with id {id} not found")
+        return user
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
+ 
+ 
+ 
+ 
+ 
+ 
    
 # GET
 @app.get("/sql_alchemy/posts", response_model=List[Post_Response_Schema])
@@ -163,7 +185,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
         
         # you wanna STOP once you find the first entry with the asked id since id is UNIQUE
         post = post_query.first() 
-        print("This is the post that was asked by the client :-\n", post)
+        print("This is the post that was asked by the client :-\n", post.__dict__)
 
         if post is None:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
