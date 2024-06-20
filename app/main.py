@@ -29,15 +29,33 @@ app = FastAPI()
 models.Base.metadata.create_all(bind = engine)  
 
 
-@app.get("/users", response_model=List[schema.Response_User_Schema])
+@app.get("/users", response_model=List[Response_User_Schema]) 
 def get_all_user(db: Session = Depends(get_db)):
     query = db.query(models.User)
     print(query)
     users = query.all()
     return users
 
-
-@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=schema.Response_User_Schema)
+# Unprocessability Error ( 422 ) if the email that they send is not valid 
+''' THis is the output if the email is not valid
+{
+    "detail": [
+        {
+            "type": "value_error",
+            "loc": [
+                "body",
+                "email"
+            ],
+            "msg": "value is not a valid email address: The email address is not valid. It must have exactly one @-sign.",
+            "input": "this com",
+            "ctx": {
+                "reason": "The email address is not valid. It must have exactly one @-sign."
+            }
+        }
+    ]
+}
+'''
+@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=Create_User_Schema)
 def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
     try:
         user_recieved_and_serialised = models.User( **new_user.model_dump() )

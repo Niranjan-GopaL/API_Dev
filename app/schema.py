@@ -86,11 +86,17 @@ class Post_Response_Schema(Post_Base_Schema):
 # -------------------------- USERS ------------------------
 
 class User(BaseModel):
+    name     : str
     email    : EmailStr
     password : str
-class Response_User_Schema(User):
+    class Config:
+        from_attributes = True
+
+class Response_User_Schema(BaseModel):
     id         : int
     created_at : datetime
+    email      : EmailStr
+    name       : str
 
 class Create_User_Schema(User):
     pass
