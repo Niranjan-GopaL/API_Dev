@@ -7,6 +7,9 @@ from uvicorn import run
 from fastapi import Depends # for passing in the db_session_maker fn as a dependency
 
 
+# hashing passowrd
+from passlib.context import CryptContext
+
 from signal import signal, SIGINT
 from sys import exit
 
@@ -27,6 +30,10 @@ app = FastAPI()
 
 # this engine is HOW you CRAEATE A TABLE to the db
 models.Base.metadata.create_all(bind = engine)  
+
+
+# How we wanna encrypt the password
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 @app.get("/sql_alcehmy/users", response_model=List[Response_User_Schema]) 
@@ -62,6 +69,10 @@ def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
 
         user_recieved_and_serialised = models.User( **new_user.model_dump() )
         print(user_recieved_and_serialised)
+        
+        # simple steps to hash password
+        hashed_passwrd = pwd_context.hash(user_recieved_and_serialised.password)
+        user_recieved_and_serialised.password = hashed_passwrd
 
         db.add(user_recieved_and_serialised)
         db.commit()
