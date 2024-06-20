@@ -18,6 +18,31 @@ git config --global core.editor "nvim"
 
 ### Humble Beginings 
 
+# API Security
+
+- `$ pip install "passlib[bcrypt]" `
+passlib can work with a lot of Algorihtms, Bcrypt is the most popular one.
+
+- https://fastapi.tiangolo.com/tutorial/security/ <--- REALLY SIMPLE AND POWERFUL articles 
+- https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/ <-- FINALLY, WHY TF EVERYONE IS HELL BENT ON JWT
+
+```py
+# hashing passowrd
+from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+@app.post("/sql_alchemy/users", status_code=status.HTTP_201_CREATED, response_model=Response_User_Schema)
+def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
+    try:
+        user_recieved_and_serialised = models.User( **new_user.model_dump() )
+        
+        # simple steps to hash password
+        hashed_passwrd = pwd_context.hash(user_recieved_and_serialised.password)
+        user_recieved_and_serialised.password = hashed_passwrd
+        ...
+```
+
 # ORMs
 <!-- READ THIS :- https://fastapi.tiangolo.com/tutorial/sql-databases/ -->
 ```py
