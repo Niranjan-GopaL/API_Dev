@@ -12,10 +12,17 @@ from app.database import get_db
 from app.schema import Create_User_Schema, Response_User_Schema
 from app.utils import hash_from_util
 
-router = APIRouter()
+router = APIRouter(
+    # every single PATH will be prefixed with /sql_alchemy/users
+    prefix="/sql_alchemy/users",
+
+    # this is for the AWESOME FastAPI documentation ;
+    # we GROUP all the path operation through this route as PSOTS 
+    tags=['Users']
+)
 
 
-@router.get("/sql_alcehmy/users", response_model=List[Response_User_Schema]) 
+@router.get("/", response_model=List[Response_User_Schema]) 
 def get_all_user(db: Session = Depends(get_db)):
     query = db.query( models.User )
     print(query)
@@ -41,7 +48,7 @@ def get_all_user(db: Session = Depends(get_db)):
     ]
 }
 '''
-@router.post("/sql_alchemy/users", status_code=status.HTTP_201_CREATED, response_model=Response_User_Schema)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=Response_User_Schema)
 def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
     try:
         # NOTE :- Sending a duplicate email STRAIGHT UP GIVES 500 INTERNAL SERVER ERROR ; => SERVER CRASH 
@@ -63,7 +70,7 @@ def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
                             detail="Database Unavailable, please try again later...")
  
  
-@router.get("/sql_alchemy/users/{id}", response_model=Response_User_Schema)
+@router.get("/{id}", response_model=Response_User_Schema)
 def get_user(id : int, db: Session = Depends(get_db) ):
     try:
         query = db.query( models.User ).filter( models.User.id == id )

@@ -8,10 +8,17 @@ from app.schema import Post_Create_Schema, Post_Response_Schema,Post_Update_Sche
 from typing import List
 from fastapi import Depends, HTTPException, Response, status,APIRouter
 
-router = APIRouter()
+router = APIRouter(
+    # every single PATH will be prefixed with /sql_alchemy/users
+    prefix="/sql_alchemy/posts",
+
+    # this is for the AWESOME FastAPI documentation ;
+    # we GROUP all the path operation through this route as PSOTS 
+    tags=['Posts']
+)
  
 # GET
-@router.get("/sql_alchemy/posts", response_model=List[Post_Response_Schema])
+@router.get("/", response_model=List[Post_Response_Schema])
 def get_all_posts(db: Session = Depends(get_db)): 
     print(" -> Models is the module responsible for creating the TABLE ( it has all the blueprint ) ")
     print(" -> Post is the TABLE CLASS we defined ")
@@ -62,7 +69,7 @@ def get_all_posts(db: Session = Depends(get_db)):
 #      content: str
 #      published : bool = True
      
-@router.post("/sql_alchemy/posts", status_code=status.HTTP_201_CREATED, response_model=Post_Response_Schema)
+@router.post("/", status_code=status.HTTP_201_CREATED, response_model=Post_Response_Schema)
 # def create_post(new_post: models.Post, db: Session = Depends(get_db)): <--------- this is ERROR ; we can ONLY VALIDATE with Pydantic objects
 # models.Post isn't a valid Pydantic model ; WE WANT THE OLD class Post for FastAPI to Validate
 def create_post(new_post: Post_Create_Schema, db: Session = Depends(get_db)):
@@ -84,7 +91,7 @@ def create_post(new_post: Post_Create_Schema, db: Session = Depends(get_db)):
 
 
 # GET {id}
-@router.get("/sql_alchemy/posts/{id}", response_model=Post_Response_Schema)
+@router.get("/{id}", response_model=Post_Response_Schema)
 def get_post(id: int, db: Session = Depends(get_db)):
     try:
         post_query = db.query(models.Post).filter(
@@ -105,7 +112,7 @@ def get_post(id: int, db: Session = Depends(get_db)):
 
 
 # PUT {id}
-@router.put("/sql_alchemy/posts/{id}")
+@router.put("/{id}")
 def update_post(id: int, post_to_update: Post_Update_Schema, db: Session = Depends(get_db)):
     try:
         post_query = db.query(models.Post).filter(
