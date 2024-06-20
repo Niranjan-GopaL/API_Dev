@@ -6,7 +6,7 @@ from app.database import get_db
 from app.schema import Post_Create_Schema, Post_Response_Schema,Post_Update_Schema
 
 from typing import List
-from fastapi import Depends, HTTPException, status,APIRouter
+from fastapi import Depends, HTTPException, Response, status,APIRouter
 
 router = APIRouter()
  
@@ -123,6 +123,22 @@ def update_post(id: int, post_to_update: Post_Update_Schema, db: Session = Depen
         db.commit()
         updated_post = post_query.first()
         return  updated_post
+    except OperationalError:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                            detail="Database Unavailable, please try again later...")
+
+# DELETE {id}
+@router.delete("/sql_alchemy/posts/{id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_post(id: int, db: Session = Depends(get_db)):
+    try:
+        delete_post_query = db.query(models.Post).filter(models.Post.id_sqlalc == id)
+        post_to_delete = delete_post_query.first()
+        if post_to_delete is None:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Post with id {id} not found")
+        db.delete(post_to_delete)
+        db.commit()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
     except OperationalError:
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                             detail="Database Unavailable, please try again later...")
