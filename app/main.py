@@ -29,9 +29,9 @@ app = FastAPI()
 models.Base.metadata.create_all(bind = engine)  
 
 
-@app.get("/users", response_model=List[Response_User_Schema]) 
+@app.get("/sql_alcehmy/users", response_model=List[Response_User_Schema]) 
 def get_all_user(db: Session = Depends(get_db)):
-    query = db.query(models.User)
+    query = db.query( models.User )
     print(query)
     users = query.all()
     return users
@@ -55,9 +55,11 @@ def get_all_user(db: Session = Depends(get_db)):
     ]
 }
 '''
-@app.post("/users", status_code=status.HTTP_201_CREATED, response_model=Create_User_Schema)
+@app.post("/sql_alchemy/users", status_code=status.HTTP_201_CREATED, response_model=Response_User_Schema)
 def create_user(new_user: Create_User_Schema, db: Session = Depends(get_db) ):
     try:
+        # NOTE :- Sending a duplicate email STRAIGHT UP GIVES 500 INTERNAL SERVER ERROR ; => SERVER CRASH 
+
         user_recieved_and_serialised = models.User( **new_user.model_dump() )
         print(user_recieved_and_serialised)
 
