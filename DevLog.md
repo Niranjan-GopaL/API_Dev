@@ -1,3 +1,9 @@
+# Python - You could do that !?
+
+```py
+username: str = payload.get("sub")
+```
+
 ### Git 
 - you can't type EXCLAMANTIONS !! in git commit message ; so what you gotta do is 
 ```sh
@@ -18,44 +24,71 @@ git config --global core.editor "nvim"
 
 ### Humble Beginings 
 
+# JWT Tokens implementation
+
+in Oauth.py, these 2 functions create a token and give it to client
+1. login_for_access_token()
+2. create_access_token()
+
+NOW YOU ONLY NEED TO CHECK if the token is valid or not :-
+`async def get_current_active_user( current_user: Annotated[User, Depends(get_current_user)], ): `
+> use this as a dependency in ANY path operation handler
+
+Now any path operation handler can call get_current_active_user() :-
+```py
+# Profile page of the VALID USER
+@router.get("/users/me/", response_model=User)
+async def read_users_me(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+) -> User :
+    return current_user
+
+# ITEMS of the VALID USER
+@router.get("/users/me/items/")
+async def read_own_items(
+    current_user: Annotated[User, Depends(get_current_active_user)],
+):
+    return [{"item_id": "Foo", "owner": current_user.username}]
+```
+
+
 # Authentication ( using 1. Cookies (session based) and 2. JWT (token based) )
 
 1. Session-Based Authentication
 
-- Methodology
-    - Login: User logs in with credentials.
-    - Session Creation: Server creates a session and stores it in the server's memory or database.
-    - Session ID: Server sends a session ID as a cookie to the client.
-    - Subsequent Requests: Client includes the session ID cookie in subsequent requests.
-    - Validation: Server checks the session ID against its stored sessions to authenticate the user.
+    - Methodology
+        - Login: User logs in with credentials.
+        - Session Creation: Server creates a session and stores it in the server's memory or database.
+        - Session ID: Server sends a session ID as a cookie to the client.
+        - Subsequent Requests: Client includes the session ID cookie in subsequent requests.
+        - Validation: Server checks the session ID against its stored sessions to authenticate the user.
 
-- Visualization:
-  - Server stores session info.
-  - Client stores session ID in cookies.
+    - Visualization:
+        - Server stores session info.
+        - Client stores session ID in cookies.
 
-- Diagram Links:
-  - [Session-Based Auth Diagram](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#session_cookie_example)
+    - Diagram Links:
+        - [Session-Based Auth Diagram](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#session_cookie_example)
 
 ### 2. Token-Based Authentication
-- Methodology:
-  - Login: User logs in with credentials.
-  - Token Creation: Server generates a token (e.g., JWT) and signs it.
-  - Token Storage: Server sends the token to the client.
-  - Subsequent Requests: Client includes the token in the Authorization header of subsequent requests.
-  - Validation: Server validates the token without needing to store session info.
+    - Methodology:
+        - Login: User logs in with credentials.
+        - Token Creation: Server generates a token (e.g., JWT) and signs it.
+        - Token Storage: Server sends the token to the client.
+        - Subsequent Requests: Client includes the token in the Authorization header of subsequent requests.
+        - Validation: Server validates the token without needing to store session info.
 
-- Visualization:
-  - Server does not store session info.
-  - Client stores the token (e.g., in local storage or cookies).
+    - Visualization:
+        - Server does not store session info.
+        - Client stores the token (e.g., in local storage or cookies).
 
-- Diagram Links:
-  - [Token-Based Auth Diagram](https://jwt.io/introduction/)
+    - Diagram Links:
+        - [Token-Based Auth Diagram](https://jwt.io/introduction/)
 
 ### Key Differences:
-- Session-Based: Server keeps track of active sessions; client stores session ID.
-- Token-Based: Server does not store session state; client stores and sends token with each request.
+    - Session-Based: Server keeps track of active sessions; client stores session ID.
+    - Token-Based: Server does not store session state; client stores and sends token with each request.
 
-For more detailed diagrams and explanations, you can visit:
 - [MDN Web Docs on HTTP Cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies)
 - [JWT.io Introduction](https://jwt.io/introduction/)
 
