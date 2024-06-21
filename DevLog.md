@@ -18,6 +18,64 @@ git config --global core.editor "nvim"
 
 ### Humble Beginings 
 
+# Authentication ( using 1. Cookies (session based) and 2. JWT (token based) )
+
+1. Session-Based Authentication
+
+- Methodology
+    - Login: User logs in with credentials.
+    - Session Creation: Server creates a session and stores it in the server's memory or database.
+    - Session ID: Server sends a session ID as a cookie to the client.
+    - Subsequent Requests: Client includes the session ID cookie in subsequent requests.
+    - Validation: Server checks the session ID against its stored sessions to authenticate the user.
+
+- Visualization:
+  - Server stores session info.
+  - Client stores session ID in cookies.
+
+- Diagram Links:
+  - [Session-Based Auth Diagram](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#session_cookie_example)
+
+### 2. Token-Based Authentication
+- Methodology:
+  - Login: User logs in with credentials.
+  - Token Creation: Server generates a token (e.g., JWT) and signs it.
+  - Token Storage: Server sends the token to the client.
+  - Subsequent Requests: Client includes the token in the Authorization header of subsequent requests.
+  - Validation: Server validates the token without needing to store session info.
+
+- Visualization:
+  - Server does not store session info.
+  - Client stores the token (e.g., in local storage or cookies).
+
+- Diagram Links:
+  - [Token-Based Auth Diagram](https://jwt.io/introduction/)
+
+### Key Differences:
+- Session-Based: Server keeps track of active sessions; client stores session ID.
+- Token-Based: Server does not store session state; client stores and sends token with each request.
+
+For more detailed diagrams and explanations, you can visit:
+- [MDN Web Docs on HTTP Cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies)
+- [JWT.io Introduction](https://jwt.io/introduction/)
+
+
+
+
+# The great Divie - main is going to be split
+
+Now main.py has 250 lines - has all the path operation handlers for 
+- routes of posts
+- routes of users
+So we split main.py accordingly
+
+- New Modularization
+routers-----|\
+&emsp;&emsp;&emsp;&emsp;&emsp;            | ---> user.py\
+&emsp;&emsp;&emsp;&emsp;&emsp;            | ---> post.py
+
+- `APIRouter()` and `FASTApi()` are the 2 main players
+
 # API Security
 
 - `$ pip install "passlib[bcrypt]" `
@@ -27,9 +85,9 @@ passlib can work with a lot of Algorihtms, Bcrypt is the most popular one.
 - https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/ <-- FINALLY, WHY TF EVERYONE IS HELL BENT ON JWT
 
 ```py
-# hashing passowrd
 from passlib.context import CryptContext
 
+# specify which algo to use to hash passowrd
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @app.post("/sql_alchemy/users", status_code=status.HTTP_201_CREATED, response_model=Response_User_Schema)
