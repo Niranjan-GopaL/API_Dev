@@ -5,8 +5,6 @@ from typing import List
 from fastapi import APIRouter, HTTPException, status
 from fastapi import Depends # for passing in the db_session_maker fn as a dependency
 
-
-
 from app import models
 from app.database import get_db
 from app.schema import Create_User_Schema, Response_User_Schema

@@ -1,7 +1,7 @@
 # API_Dev
 - Learning API Development 
 
-- Topics
+## Topics
     - Path operation functions 
     - Request & Response
     - HTTP Error Handling
@@ -11,7 +11,7 @@
     - Deep dive into layout of a JWT token
 
 
-- Tech Stack :
+## Tech Stack :
     - FASTapi
     - Pydantic
     - PostgresSQL
@@ -21,11 +21,11 @@
     - OAUth2
 
 
-- DevOps :
+## DevOps and Production :
     - Docker
     - Kubernetes
     - Github Actions
 
-- Deployment :
+## Deployment :
     - Heroku
     - AWS 

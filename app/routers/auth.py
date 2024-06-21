@@ -1,15 +1,23 @@
-from sqlite3 import OperationalError
+from fastapi import APIRouter, Depends, status, HTTPException, Response
 from sqlalchemy.orm import Session
 
-from typing import List
-from fastapi import APIRouter, HTTPException, status
-from fastapi import Depends # for passing in the db_session_maker fn as a dependency
+from app.schema import Create_User_Schema
 
-router = APIRouter(
-    prefix = "/auth/login",
-    tags=['Authentication']
-)
+from .. import database, schemas, models, utils, oauth2
 
-@router.get("/")
-def get_user_auth(  ):
-    pass
+router = APIRouter(tags=['Authentication'])
+
+
+@router.post('/login', response_model=schemas.Token)
+def login(user_credentials: Create_User_Schema = Depends(), db: Session = Depends(database.get_db)):
+
+    query = db.query(models.User).filter(models.User.email == user_credentials.email)
+    user  = query.first()
+
+    if not user or not utils.verify(user_credentials.password, user.password):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail=f"Invalid Credentials")
+
+    # create a token
+    # return token
+    

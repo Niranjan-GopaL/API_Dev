@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Union
 from pydantic import BaseModel, EmailStr
 
 
@@ -100,3 +101,13 @@ class Response_User_Schema(BaseModel):
 
 class Create_User_Schema(User):
     pass
+
+#  ------------------- TOKENS ---------------------------------------------------
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Union[str, None] = None
+    
+        
